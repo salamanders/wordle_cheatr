@@ -1,0 +1,42 @@
+    val words = run {
+        val cache = SimpleCache<String, HashSet<String>>()
+        cache("words") {
+            println("Refreshing Cache")
+            URL("https://raw.githubusercontent.com/dwyl/english-words/master/words_alpha.txt")
+                .readLinesGZip()
+                .filter { it.length == 5 }
+                .toHashSet()
+        }
+        cache.persist()
+        cache["words"]!!
+    }
+
+fun quadraticMean(vector: Array<Double>): Double =
+    sqrt(vector.sumOf { it * it } / vector.size)
+
+
+fun Collection<Int>.quadraticMean(): Double =
+    sqrt((this.sumOf { it * it }.toDouble() / this.size))
+
+    val game = Game(possibleAnswers)
+    val player = Player(allowedGuesses)
+
+    val wordStats = allowedGuesses.shuffled().take(100).map { firstGuess ->
+        val sizes = (0..5000).map {
+            player.newGame()
+            game.newGame().guess(firstGuess).forEach { player.addHint(it) }
+            player.getPotentialsSize()
+        }
+        Triple(firstGuess, sizes.average().toInt(), sizes.maxOrNull()).also { (word, avg, max) ->
+            println("$word\t$avg\t$max")
+        }
+    }
+
+    // println(game.getPotentials())
+
+    // Which 2 words divide the space the most (give the most information)
+    (0..4).forEach { wordPosition ->
+        val numbersByElement = words.map { it[wordPosition].toString() }.groupingBy { it }.eachCount()
+        val topFirst = numbersByElement.maxByOrNull { it.value }
+        println("Position: $wordPosition: $topFirst")
+    }
